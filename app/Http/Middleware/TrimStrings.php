@@ -24,8 +24,9 @@ class TrimStrings extends TrimStringsBase
 
     protected function mobileTransform($value): string
     {
-        $pattern='/^(?:(\+98|0))(9(\d{2})(\d{3})(\d{4}))$/';
+        $pattern='/^(?:(\+98|0))(9(\d+))/';
         preg_match($pattern,$value,$matches);
+
         return $matches[2];
     }
 }

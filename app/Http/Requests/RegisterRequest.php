@@ -51,18 +51,4 @@ class RegisterRequest extends FormRequest
             ],
         ];
     }
-
-
-    public function messages(): array
-    {
-        return [
-
-            'mobile.required' => 'your mobile number is necessary',
-            'max' => 'your length of mobile number must be 11',
-            'mobile' => "your mobile number must be valid"
-
-        ];
-
-    }
-
 }
