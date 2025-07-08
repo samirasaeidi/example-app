@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Rules\MobileRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
 
 
 class RegisterRequest extends FormRequest
@@ -32,23 +33,23 @@ class RegisterRequest extends FormRequest
                 'max:11',
                 'mobile',
             ],
-            'parents' => [
-                'required',
-                'array',
-            ],
-            'parents.*' => [
-                'required',
-                'array',
-            ],
-            'parents.*.mobile' => [
-                'mobile',
-                'required',
-            ],
-            'parents.*.type' => [
-                'required',
-                'string',
-                new Rules\In(['father', 'mother']),
-            ],
         ];
+    }
+
+    public function validateSentCount($otpModel){
+        if ($otpModel->sent_count >= 5) {
+            throw ValidationException::withMessages([
+                'mobile'=>"Please waite for 10 Minutes!",
+            ]);
+        }
+    }
+
+    public function validateLastSentAt($otpModel)
+    {
+        if ($otpModel->last_sent_at->diffInSeconds(now()) <= 10) {
+            throw ValidationException::withMessages([
+                'mobile'=>"Please Waite for 60 Second!",
+            ]);
+        }
     }
 }
