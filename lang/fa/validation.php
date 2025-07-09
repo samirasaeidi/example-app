@@ -194,7 +194,8 @@ return [
     */
 
     'attributes' => [
-        'mobile'=>'موبایل'
+        'mobile'=>'موبایل',
+        'password'=>'رمز عبور'
     ],
 
 ];

@@ -6,6 +6,7 @@ use App\Rules\MobileRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
+use function Laravel\Prompts\password;
 
 
 class RegisterRequest extends FormRequest
@@ -33,6 +34,31 @@ class RegisterRequest extends FormRequest
                 'max:11',
                 'mobile',
             ],
+            'first_name'=>[
+                'required',
+                'string',
+                'max:128',
+            ],
+            'last_name'=>[
+                'required',
+                'string',
+                'max:128',
+            ],
+            'password'=>[
+                'required',
+                Rules\Password::min(6)
+                    ->max(64)
+                    ->letters()
+                    ->symbols()
+                    ->numbers(),
+            ],
+            'national_code'=>[
+                'required',
+                'string',
+                'max:10',
+                'national_code'
+//                'regex:[^0][\d]{9,9}$',
+            ]
         ];
     }
 
