@@ -9,17 +9,6 @@ use App\Models\Auth;
 class UserController extends Controller
 {
 
-    public function auth(){
-
-        $auth=Auth::all();
-
-        return response()->json([
-            'status'=>true,
-            'message'=>'Auth retireved successfully',
-            'data'=>$auth
-        ]);
-
-    }
 
     public function sendOtp(Request $request)
     {
