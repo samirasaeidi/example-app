@@ -9,7 +9,11 @@ use App\Models\Otp;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
 
 class AuthController extends Controller
 {
@@ -21,25 +25,16 @@ class AuthController extends Controller
         $mobile = $request->input('mobile');
         $otp = generate_otp_code();
 
-        $user = User::where('mobile', $mobile)->fisrt();
+        $user = User::query()->where('mobile', $mobile)->first();
 
         if ($user) {
-            return $this->responseFailed('شماره کاربری وجود دارد');
+            return $this->responseFailed('the mobile number exists');
         }
 
-        $otpCode = Otp::query()->firstOrCreate([
-            'mobile' => $mobile,
-        ], [
-            'mobile' => $mobile,
-            'code' => $otp,
-            'expires_at' => now()->addSeconds(60),
-            'last_sent_at' => now(),
-            'sent_count' => 1,
-            'try' => 0
-        ]);
+        $otpCode = (new Otp())->updateOrCreateOtp($mobile, $otp, $password = null);
 
         if ($otpCode->wasRecentlyCreated) {
-            return $this->responseSuccess($otp);
+            return $this->responseSuccess(otp: $otp);
         }
 
         if ($otpCode->last_sent_at->diffInMinutes(now()) >= 2) {
@@ -52,7 +47,7 @@ class AuthController extends Controller
 
         $otpCode->storeNewOtpCode($otp);
 
-        return $this->responseSuccess($otp);
+        return $this->responseSuccess(otp: $otp);
     }
 
     public function register(RegisterRequest $request)
@@ -61,10 +56,9 @@ class AuthController extends Controller
 
         $userMobile = User::query()->where('mobile', $mobile)->first();
         $verifyMobile = Otp::query()->where('mobile', $mobile)->first();
-//        dd($verifyMobile);
 
         if ($userMobile) {
-            return $this->responseFailed('شماره کاربری در سیستم وجود دارد');
+            return $this->responseFailed('the mobile number exists');
         }
 
         if ($verifyMobile) {
@@ -80,85 +74,72 @@ class AuthController extends Controller
             ],
         );
         $data->forceFill([
-            'mobile_verified_at'=>now()
+            'mobile_verified_at' => now()
         ])->save();
 
+        $token = JWTAuth::fromUser($data);
 
-        return $this->createResponse(true, 'عضویت با موفقیت انجام شد', $otp, $data);
+        return $this->createResponse(true, 'register was successfully', $otp, $data, $token);
     }
 
-    public function resendCode(ExpireRequest $request)
+    public function resendOtp(ExpireRequest $request)
     {
         $otp = generate_otp_code();
         $mobile = $request->input('mobile');
         $otpCode = Otp::query()->where('mobile', $mobile)->first();
 
         if (!$otpCode) {
-            return $this->responseFailed('شماره موبایل نامعتبر است');
+            return $this->responseFailed('the mobile number is invalid');
         }
 
         if ($otpCode->last_sent_at->diffInSeconds(now()) <= 60) {
-            return $this->responseFailed('زمان انقضای کد تمام شد');
+            return $this->responseFailed('code has expired');
         }
         $otpCode->storeNewOtpCode($otp);
 
-        return $this->responseSuccessCreate('دریافت مجدد کد', otp: $otp);
+        return $this->responseSuccessCreate('resend code', otp: $otp);
     }
 
     public function login(LoginRequest $request)
     {
+        $credentials = $request->only(['mobile', 'password']);
+
+        if (!$token = auth()->attempt($credentials)) {
+            return $this->responseFailed('Unauthorized');
+        }
+
         $mobile = $request->input('mobile');
+        $password = $request->input('password');
         $otp = generate_otp_code();
-        $user = User::query()->where('mobile', $mobile)->first();
 
-        if (!$user) {
-            return $this->responseFailed('user not found');
+        $otpCode = (new Otp())->updateOrCreateOtp($mobile, $otp, $password);
+
+        if ($otpCode->wasRecentlyCreated) {
+            return $this->responseSuccess(otp: $otp);
         }
-        if ($user->mobile == $request->mobile) {
 
-            $otpCode = Otp::query()->update(
-                [
-                    'mobile' => $mobile,
-                    'code' => $otp,
-                    'expires_at' => now()->addSeconds(60),
-                    'last_sent_at' => now(),
-                    'sent_count' => 1,
-                    'try' => 0
-                ]);
-
-            if ($otpCode->wasRecentlyCreated) {
-                return $this->responseSuccess($otp);
-            }
-
-            if ($otpCode->last_sent_at->diffInMinutes(now()) >= 2) {
-                $otpCode->resetCounters();
-            }
-
-            $request->validateSentCount($otpCode);
-
-            $request->validateLastSentAt($otpCode);
-
-            $otpCode->storeNewOtpCode($otp);
-
-            return $this->responseSuccess($otp);
-
+        if ($otpCode->last_sent_at->diffInMinutes(now()) >= 2) {
+            $otpCode->resetCounters();
         }
-    }
 
-    public function showUser($id)
-    {
-        $data = User::find($id);
+        $request->validateSentCount($otpCode);
 
-        if(!$data){
-            return $this->responseFailed('user information dose not exsist');
-        }
-        return $this->createResponse(true,'user information found successfully',data:$data);
+        $request->validateLastSentAt($otpCode);
+
+        $otpCode->storeNewOtpCode($otp);
+
+        return $this->responseSuccess(otp: $otp, token: $token);
 
     }
 
-    private function responseSuccess($otp): JsonResponse
+    public function showUser()
     {
-        return $this->createResponse(true, 'create is successfully', $otp);
+            return response()->json(['user' => auth()->user()]);
+    }
+
+    private function responseSuccess($otp = '', $token = ''): JsonResponse
+    {
+        return $this->createResponse(true, 'create is successfully', $otp, $token);
     }
 
     /**
@@ -170,30 +151,26 @@ class AuthController extends Controller
 
     }
 
-    private function createReponseSuccess($data)
-    {
-        return $this->createResponse(true, 'ثبت نام انجام شد', data: $data);
-
-    }
-
     private function responseFailed($message): JsonResponse
     {
         return $this->createResponse(false, $message);
     }
 
-    private function createResponse($status, $message, $otp = '', $data = []): JsonResponse
+    private function createResponse(bool $status, string $message, $otp = '', $data = [], $token = ''): JsonResponse
     {
         return response()->json([
             'status' => $status,
             'message' => $message,
             'otp' => $otp,
-            'data' => $data
+            'data' => $data,
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => (auth()->factory()->getTTL() * 60) + time(),
+
         ]);
     }
+
+
 }
 
 
-$user = User::find(1);
-if ($user->status === UserStatus::Active) {
-    // ...
-}

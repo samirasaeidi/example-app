@@ -27,8 +27,23 @@ class Otp extends Model
         $this->last_sent_at = now();
         $this->sent_count += 1;
         $this->try += 1;
-
         $this->save();
+    }
+
+    public function updateOrCreateOtp(int $mobile, int $otp, string|null $password)
+    {
+
+        return $this->newQuery()->firstOrCreate([
+            'mobile' => $mobile,
+        ], [
+            'mobile' => $mobile,
+            'password' => $password,
+            $this->code = $otp,
+            $this->expires_at = now()->addSeconds(60),
+            $this->last_sent_at = now(),
+            $this->sent_count = 1,
+            $this->try = 0,
+        ]);
     }
 
     public function resetCounters()

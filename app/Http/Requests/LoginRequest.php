@@ -35,4 +35,20 @@ class LoginRequest extends FormRequest
             ],
         ];
     }
+    public function validateSentCount($otpModel){
+        if ($otpModel->sent_count >= 5) {
+            throw ValidationException::withMessages([
+                'mobile'=>"Please waite for 10 Minutes!",
+            ]);
+        }
+    }
+
+    public function validateLastSentAt($otpModel)
+    {
+        if ($otpModel->last_sent_at->diffInSeconds(now()) <= 10) {
+            throw ValidationException::withMessages([
+                'mobile'=>"Please Waite for 60 Second!",
+            ]);
+        }
+    }
 }
