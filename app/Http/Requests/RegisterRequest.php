@@ -72,7 +72,7 @@ class RegisterRequest extends FormRequest
 
     public function validateLastSentAt($otpModel)
     {
-        if ($otpModel->last_sent_at->diffInSeconds(now()) <= 10) {
+        if ($otpModel->last_sent_at->diffInSeconds(now()) <= 60) {
             throw ValidationException::withMessages([
                 'mobile'=>"Please Waite for 60 Second!",
             ]);

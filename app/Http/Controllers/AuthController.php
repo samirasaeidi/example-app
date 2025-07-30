@@ -37,7 +37,7 @@ class AuthController extends Controller
             return $this->responseSuccess(otp: $otp);
         }
 
-        if ($otpCode->last_sent_at->diffInMinutes(now()) >= 2) {
+        if ($otpCode->last_sent_at->diffInMinutes(now()) >= 10) {
             $otpCode->resetCounters();
         }
 
@@ -118,7 +118,7 @@ class AuthController extends Controller
             return $this->responseSuccess(otp: $otp);
         }
 
-        if ($otpCode->last_sent_at->diffInMinutes(now()) >= 2) {
+        if ($otpCode->last_sent_at->diffInMinutes(now()) >= 10) {
             $otpCode->resetCounters();
         }
 
@@ -130,11 +130,6 @@ class AuthController extends Controller
 
         return $this->responseSuccess(otp: $otp, token: $token);
 
-    }
-
-    public function showUser()
-    {
-            return response()->json(['user' => auth()->user()]);
     }
 
     private function responseSuccess($otp = '', $token = ''): JsonResponse
