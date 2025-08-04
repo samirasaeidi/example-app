@@ -17,13 +17,8 @@ Route::prefix('profile')->middleware('auth')->group(function(){
     Route::get('/', [ProfileController::class, 'showUser']);
 });
 
+
 Route::prefix('admin')->group(function () {
-
-    Route::resource('items',[AdminCntroller::class]);
-
-    Route::post('/create', [AdminCntroller::class, 'create']);
-    Route::post('/read/{id}',[AdminCntroller::class,'read']);
-    Route::patch('/update/{id}',[AdminCntroller::class,'update']);
-    Route::delete('/delete/{id}',[AdminCntroller::class,'delete']);
+    Route::apiResource('users',AdminCntroller::class);
 
 });

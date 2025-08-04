@@ -3,9 +3,11 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rules;
 
-class CreateUserRequest extends FormRequest
+
+class UpdateUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -42,10 +44,10 @@ class CreateUserRequest extends FormRequest
             'password'=>[
                 'required',
                 Rules\Password::min(6)
-                    ->max(64)
-                    ->letters()
-                    ->symbols()
-                    ->numbers(),
+                ->max(64)
+                ->letters()
+                ->symbols()
+                ->numbers(),
             ],
             'national_code'=>[
                 'required',

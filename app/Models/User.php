@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -59,6 +60,16 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function updateUser(UpdateUserRequest $request)
+    {
+        $user = $request->safe()->all() +
+            [
+                'birth_date' => $request->input('birth_date'),
+                'father_name' => $request->input('father_name'),
+            ];
+        $this->fill($user)->save();
     }
 
 }
