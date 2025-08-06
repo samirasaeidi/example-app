@@ -19,6 +19,12 @@ Route::prefix('profile')->middleware('auth')->group(function(){
 
 
 Route::prefix('admin')->group(function () {
+    Route::get('users/test',[AdminCntroller::class ,'indexTest']);
+    
     Route::apiResource('users',AdminCntroller::class);
 
+
+
 });
+
+

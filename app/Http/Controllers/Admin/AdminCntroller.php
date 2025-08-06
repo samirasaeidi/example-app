@@ -12,16 +12,46 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
+
 class AdminCntroller extends Controller
 {
+
+    protected const DEFAULT_SORT = 'id';
+    protected const DEFAULT_DIRECTION = 'asc';
 
 
     public function index(IndexUserRequest $request)
     {
-        $perPage=$request->input('per_page',12);
-        $user = Otp::query()->paginate($perPage);
+        $orderCollections = ['mobile', 'national_code', 'id', 'first_name'];
+
+        $userQuery = User::query();
+        $orderInput = $request->input('sort', self::DEFAULT_SORT);
+        if (is_string($orderInput)) {
+            $userQuery->orderBy($orderInput, self::DEFAULT_DIRECTION);
+        } elseif (is_array($orderInput)) {
+            $orderColumn = $orderCollections[0] ?? self::DEFAULT_SORT;
+            $orderDirection = $orderInput[1] ?? self::DEFAULT_DIRECTION;
+            $orderDirection = in_array($orderDirection, ['asc', 'desc']) ?
+                $orderDirection : self::DEFAULT_DIRECTION;
+            $userQuery->orderBy($orderColumn, $orderDirection);
+        }
+
+        $searchQuery = $request->input('search');
+        if (!empty($searchQuery)) {
+            $userQuery->where(function ($q) use ($searchQuery) {
+                $q->where('first_name', 'LIKE', '%' . $searchQuery . '%')
+                    ->orWhere('last_name', 'LIKE', '%' . $searchQuery . '%')
+                    ->orWhere('mobile', 'LIKE', '%' . $searchQuery . '%')
+                    ->orWhere('national_code', 'LIKE', '%' . $searchQuery . '%');
+            });
+        }
+
+        $perPage = $request->input('per_page', 12);
+        $user = $userQuery->paginate($perPage);
         return $this->createResponse(true, 'Users found successfully', $user);
     }
+
 
     public function show($id)
     {
@@ -88,4 +118,5 @@ class AdminCntroller extends Controller
         return $this->createResponse(false, $message);
     }
 }
+
 
