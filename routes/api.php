@@ -13,17 +13,14 @@ Route::prefix('auth')->middleware('guest')->group(function () {
     Route::post('/otp-resend', [AuthController::class, 'resendOtp']);
     Route::post('/login', [AuthController::class, 'login']);
 });
+
 Route::prefix('profile')->middleware('auth')->group(function(){
     Route::get('/', [ProfileController::class, 'showUser']);
 });
 
-
 Route::prefix('admin')->group(function () {
     Route::get('users/test',[AdminCntroller::class ,'indexTest']);
-    
     Route::apiResource('users',AdminCntroller::class);
-
-
 
 });
 

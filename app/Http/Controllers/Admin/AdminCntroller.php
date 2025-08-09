@@ -13,12 +13,18 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
+//use Spatie\QueryBuilder\QueryBuilder;
+//use Illuminate\Database\Query\Builder;
+
+
 
 class AdminCntroller extends Controller
 {
 
     protected const DEFAULT_SORT = 'id';
     protected const DEFAULT_DIRECTION = 'asc';
+
+    protected const DEFAULT_FILTER='id';
 
 
     public function index(IndexUserRequest $request)
@@ -46,6 +52,32 @@ class AdminCntroller extends Controller
                     ->orWhere('national_code', 'LIKE', '%' . $searchQuery . '%');
             });
         }
+
+        //برای بهینه سازی میتوانم scop کنیم
+
+        $filters = $request->input('filters', []);
+
+//        $filterCollection=['first_name','last_name','mobile','national_code'];
+
+
+        if(!empty($filters['first_name'])){
+            $userQuery->where('first_name','LIKE','%'.$filters['first_name'].'%');
+        }
+
+        if(!empty($filters['last_name'])){
+            $userQuery->where('last_name','LIKE','%'.$filters['last_name'].'%');
+        }
+
+        if(!empty($filters['mobile'])){
+            $userQuery->where('mobile','LIKE','%'.$filters['mobile'].'%');
+        }
+
+        if(!empty($filters['national_code'])){
+            $userQuery->where('national_code','LIKE','%'.$filters['national_code'].'%');
+        }
+
+//        dd($filters);
+
 
         $perPage = $request->input('per_page', 12);
         $user = $userQuery->paginate($perPage);
