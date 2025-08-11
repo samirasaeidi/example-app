@@ -53,6 +53,7 @@ class AdminCntroller extends Controller
             });
         }
 
+
         $filters =$request->input('filters',[]);
 
 //        dd($filters);
@@ -61,7 +62,7 @@ class AdminCntroller extends Controller
             $setFilters = Arr::wrap($filters['first_name']);
             $operator =Arr::wrap($filters['operator']);
             $userQuery->where(function ($q) use ($setFilters,$operator) {
-                foreach ($setFilters as $values) {
+                foreach ($setFilters as $index=>$values) {
                     $q->Where('first_name', 'LIKE', "%$values%");
                 }
             });
@@ -152,6 +153,7 @@ class AdminCntroller extends Controller
         return $this->createResponse(false, $message);
     }
 }
+
 
 
 
