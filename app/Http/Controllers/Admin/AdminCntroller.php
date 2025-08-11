@@ -77,15 +77,15 @@ class AdminCntroller extends Controller
                 }
             });
 
-
         }
-
-
 
         $perPage = $request->input('per_page', 15);
         $user = $userQuery->paginate($perPage);
         return $this->createResponse(true, 'Users found successfully', $user);
     }
+
+
+
 
     public function show($id)
     {
