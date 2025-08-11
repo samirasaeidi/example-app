@@ -13,9 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
+
 //use Spatie\QueryBuilder\QueryBuilder;
 //use Illuminate\Database\Query\Builder;
-
 
 
 class AdminCntroller extends Controller
@@ -24,7 +24,7 @@ class AdminCntroller extends Controller
     protected const DEFAULT_SORT = 'id';
     protected const DEFAULT_DIRECTION = 'asc';
 
-    protected const DEFAULT_FILTER='id';
+    protected const DEFAULT_FILTER = 'id';
 
 
     public function index(IndexUserRequest $request)
@@ -53,37 +53,39 @@ class AdminCntroller extends Controller
             });
         }
 
-        //برای بهینه سازی میتوانم scop کنیم
-
-        $filters = $request->input('filters', []);
-
-//        $filterCollection=['first_name','last_name','mobile','national_code'];
-
-
-        if(!empty($filters['first_name'])){
-            $userQuery->where('first_name','LIKE','%'.$filters['first_name'].'%');
-        }
-
-        if(!empty($filters['last_name'])){
-            $userQuery->where('last_name','LIKE','%'.$filters['last_name'].'%');
-        }
-
-        if(!empty($filters['mobile'])){
-            $userQuery->where('mobile','LIKE','%'.$filters['mobile'].'%');
-        }
-
-        if(!empty($filters['national_code'])){
-            $userQuery->where('national_code','LIKE','%'.$filters['national_code'].'%');
-        }
+        $filters =$request->input('filters',[]);
 
 //        dd($filters);
 
+        if (!empty($filters['first_name'])) {
+            $setFilters = Arr::wrap($filters['first_name']);
+            $operator =Arr::wrap($filters['operator']);
+            $userQuery->where(function ($q) use ($setFilters,$operator) {
+                foreach ($setFilters as $values) {
+                    $q->Where('first_name', 'LIKE', "%$values%");
+                }
+            });
 
-        $perPage = $request->input('per_page', 12);
+        }
+
+        if (!empty($filters['last_name'])) {
+            $setFilters = Arr::wrap($filters['last_name']);
+            $operator =Arr::wrap($filters['operator']);
+            $userQuery->where(function ($q) use ($setFilters, $operator) {
+                foreach ($setFilters as $value) {
+                    $q->Where('last_name', 'LIKE', "%$value%");
+                }
+            });
+
+
+        }
+
+
+
+        $perPage = $request->input('per_page', 15);
         $user = $userQuery->paginate($perPage);
         return $this->createResponse(true, 'Users found successfully', $user);
     }
-
 
     public function show($id)
     {
@@ -150,5 +152,7 @@ class AdminCntroller extends Controller
         return $this->createResponse(false, $message);
     }
 }
+
+
 
 
