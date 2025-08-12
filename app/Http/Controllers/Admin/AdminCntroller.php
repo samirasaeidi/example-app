@@ -29,14 +29,14 @@ class AdminCntroller extends Controller
 
     public function index(IndexUserRequest $request)
     {
-        $orderCollections = ['mobile', 'national_code', 'id', 'first_name'];
+        $allowedCollections = ['mobile', 'national_code', 'id', 'first_name'];
 
         $userQuery = User::query();
         $orderInput = $request->input('sort', self::DEFAULT_SORT);
         if (is_string($orderInput)) {
             $userQuery->orderBy($orderInput, self::DEFAULT_DIRECTION);
         } elseif (is_array($orderInput)) {
-            $orderColumn = $orderCollections[0] ?? self::DEFAULT_SORT;
+            $orderColumn = $allowedCollections[0] ?? self::DEFAULT_SORT;
             $orderDirection = $orderInput[1] ?? self::DEFAULT_DIRECTION;
             $orderDirection = in_array($orderDirection, ['asc', 'desc']) ?
                 $orderDirection : self::DEFAULT_DIRECTION;
@@ -53,32 +53,93 @@ class AdminCntroller extends Controller
             });
         }
 
-
-        $filters =$request->input('filters',[]);
-
-//        dd($filters);
+        $filters = $request->input('filters', []);
+//        $allowedOperators = ['=', '>', '<', 'LIKE', '>=', '<='];
+//
+//        if (!empty($filters['first_name'])) {
+//            $setFilters = Arr::wrap($filters['first_name']);
+//
+//            $userQuery->where(function ($query) use ($setFilters, $allowedOperators) {
+//                foreach ($setFilters as $values) {
+//                    $operator = $values['operator'] ;
+//                    $values = $values['value'] ?? null;
+//
+//                    if (!in_array($operator, $allowedOperators)) {
+//                        $operator = '=';
+//                    }
+//
+//                    if ($operator == 'LIKE') {
+//                        $query->orWhere('first_name', 'LIKE', "%{$values}%");
+//                    } else {
+//                        $query->orWhere('first_name', $operator, $values);
+//                    }
+//                }
+//            });
+//        }
 
         if (!empty($filters['first_name'])) {
             $setFilters = Arr::wrap($filters['first_name']);
-            $operator =Arr::wrap($filters['operator']);
-            $userQuery->where(function ($q) use ($setFilters,$operator) {
-                foreach ($setFilters as $index=>$values) {
-                    $q->Where('first_name', 'LIKE', "%$values%");
+            $operators = $filters['operator'] ?? [];
+            $allowedOperators = ['=', '>', '<', '<=', '>=', 'LIKE'];
+
+            $userQuery->where(function ($query) use ($setFilters, $operators, $allowedOperators) {
+                foreach ($operators as $operator) {
+                    if (!in_array($operator, $allowedOperators)) {
+                        $operator = '=';
+                    }
+
+                    foreach ($setFilters as $values) {
+                        if ($operator == 'LIKE') {
+                            $query->orWhere('first_name', 'LIKE', "%{$values}%");
+                        } else {
+                            $query->orWhere('first_name', $operator, $values);
+                        }
+                    }
                 }
             });
-
         }
 
         if (!empty($filters['last_name'])) {
             $setFilters = Arr::wrap($filters['last_name']);
-            $operator =Arr::wrap($filters['operator']);
-            $userQuery->where(function ($q) use ($setFilters, $operator) {
-                foreach ($setFilters as $value) {
-                    $q->Where('last_name', 'LIKE', "%$value%");
+            $operators = $filters['operator'] ?? [];
+            $allowedOperators = ['=', '>', '<', '<=', '>=', 'LIKE'];
+
+            $userQuery->where(function ($query) use ($setFilters, $operators, $allowedOperators) {
+                foreach ($operators as $operator) {
+
+                    if (!in_array($operator, $allowedOperators)) {
+                        $operator ='=';
+                    }
+                    foreach ($setFilters as $values) {
+                        if ($operator == 'LIKE') {
+                            $query->orWhere('last_name', 'LIKE', "%{$values}%");
+                        } else {
+                            $query->orWhere('last_name', $operator, $values);
+                        }
+                    }
                 }
             });
-
         }
+
+//
+//        if (!empty($filters['last_name'])) {
+//            $setFilters = Arr::wrap($filters['last_name']);
+//            $userQuery->where(function ($query) use ($setFilters, $allowedOperators) {
+//                foreach ($setFilters as $values) {
+//                    $operator = $values['operator'] ?? '=';
+//                    $values = $values['value'] ?? null;
+//
+//                    if (!in_array($operator, $allowedOperators)) {
+//                        $operator = '=';
+//                    }
+//                    if ($operator === 'LIKE') {
+//                        $query->orWhere('last_name', 'LIKE', "%{$values}%");
+//                    } else {
+//                        $query->orWhere('last_name', $operator, $values);
+//                    }
+//                }
+//            });
+//        }
 
         $perPage = $request->input('per_page', 15);
         $user = $userQuery->paginate($perPage);
