@@ -54,100 +54,41 @@ class AdminCntroller extends Controller
         }
 
         $filters = $request->input('filters', []);
-//        $allowedOperators = ['=', '>', '<', 'LIKE', '>=', '<='];
-//
-//        if (!empty($filters['first_name'])) {
-//            $setFilters = Arr::wrap($filters['first_name']);
-//
-//            $userQuery->where(function ($query) use ($setFilters, $allowedOperators) {
-//                foreach ($setFilters as $values) {
-//                    $operator = $values['operator'] ;
-//                    $values = $values['value'] ?? null;
-//
-//                    if (!in_array($operator, $allowedOperators)) {
-//                        $operator = '=';
-//                    }
-//
-//                    if ($operator == 'LIKE') {
-//                        $query->orWhere('first_name', 'LIKE', "%{$values}%");
-//                    } else {
-//                        $query->orWhere('first_name', $operator, $values);
-//                    }
-//                }
-//            });
-//        }
 
-        if (!empty($filters['first_name'])) {
-            $setFilters = Arr::wrap($filters['first_name']);
-            $operators = $filters['operator'] ?? [];
-            $allowedOperators = ['=', '>', '<', '<=', '>=', 'LIKE'];
+        $availableOperators = [
+            'LT'=>'<',
+            'LTE'=>'<=',
+            'EQ'=>'=',
+            'NOT'=>'!=',
+            'GT'=>'>',
+            'GTE'=>'>=',
+            'LIKE'=>'like',
+        ];
 
-            $userQuery->where(function ($query) use ($setFilters, $operators, $allowedOperators) {
-                foreach ($operators as $operator) {
-                    if (!in_array($operator, $allowedOperators)) {
-                        $operator = '=';
-                    }
-
-                    foreach ($setFilters as $values) {
-                        if ($operator == 'LIKE') {
-                            $query->orWhere('first_name', 'LIKE', "%{$values}%");
-                        } else {
-                            $query->orWhere('first_name', $operator, $values);
-                        }
-                    }
-                }
-            });
+        foreach ($filters as $field=>$fieldFilters){
+            foreach ($fieldFilters as $filter){
+                $value = $filter['value'];
+                $operator = $availableOperators[$filter['operator']]??'=';
+                $userQuery->where($field,$operator,$value);
+            }
         }
-
-        if (!empty($filters['last_name'])) {
-            $setFilters = Arr::wrap($filters['last_name']);
-            $operators = $filters['operator'] ?? [];
-            $allowedOperators = ['=', '>', '<', '<=', '>=', 'LIKE'];
-
-            $userQuery->where(function ($query) use ($setFilters, $operators, $allowedOperators) {
-                foreach ($operators as $operator) {
-
-                    if (!in_array($operator, $allowedOperators)) {
-                        $operator ='=';
-                    }
-                    foreach ($setFilters as $values) {
-                        if ($operator == 'LIKE') {
-                            $query->orWhere('last_name', 'LIKE', "%{$values}%");
-                        } else {
-                            $query->orWhere('last_name', $operator, $values);
-                        }
-                    }
-                }
-            });
-        }
-
-//
-//        if (!empty($filters['last_name'])) {
-//            $setFilters = Arr::wrap($filters['last_name']);
-//            $userQuery->where(function ($query) use ($setFilters, $allowedOperators) {
-//                foreach ($setFilters as $values) {
-//                    $operator = $values['operator'] ?? '=';
-//                    $values = $values['value'] ?? null;
-//
-//                    if (!in_array($operator, $allowedOperators)) {
-//                        $operator = '=';
-//                    }
-//                    if ($operator === 'LIKE') {
-//                        $query->orWhere('last_name', 'LIKE', "%{$values}%");
-//                    } else {
-//                        $query->orWhere('last_name', $operator, $values);
-//                    }
-//                }
-//            });
-//        }
 
         $perPage = $request->input('per_page', 15);
         $user = $userQuery->paginate($perPage);
         return $this->createResponse(true, 'Users found successfully', $user);
-    }
 
+        //filter with column
 
+//        if (isset($filters['first_name'])){
+////            $fieldFilters = $filters['first_name'];
+////            foreach ($fieldFilters as $filter){
+////                $value = $filter['value'];
+////                $operator = $availableOperators[$filter['operator']]??'=';
+////                $userQuery->where('first_name',$operator,$value);
+////            }
+////        }
 
+        }
 
     public function show($id)
     {
@@ -180,7 +121,6 @@ class AdminCntroller extends Controller
     public function update(UpdateUserRequest $request, $id)
     {
         $user = User::query()->find($id);
-//        dd($user);
         if (!$user) {
             return $this->responseFailed('User does not exist.');
         }
