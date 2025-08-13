@@ -66,10 +66,13 @@ class AdminCntroller extends Controller
         ];
 
         foreach ($filters as $field=>$fieldFilters){
-            foreach ($fieldFilters as $filter){
-                $value = $filter['value'];
-                $operator = $availableOperators[$filter['operator']]??'=';
-                $userQuery->where($field,$operator,$value);
+            if(is_array($fieldFilters) || is_object($fieldFilters)){
+                foreach ($fieldFilters as $filter){
+//                dd($filter);
+                    $value = $filter['value'];
+                    $operator = $availableOperators[$filter['operator']]??'=';
+                    $userQuery->where($field,$operator,$value);
+                }
             }
         }
 
