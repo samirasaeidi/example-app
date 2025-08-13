@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
+use function Symfony\Component\String\s;
 
 //use Spatie\QueryBuilder\QueryBuilder;
 //use Illuminate\Database\Query\Builder;
@@ -53,45 +54,80 @@ class AdminCntroller extends Controller
             });
         }
 
+
         $filters = $request->input('filters', []);
-
         $availableOperators = [
-            'LT'=>'<',
-            'LTE'=>'<=',
             'EQ'=>'=',
-            'NOT'=>'!=',
-            'GT'=>'>',
-            'GTE'=>'>=',
-            'LIKE'=>'like',
+            'GT' => '>',
+            'GTE' => '>=',
+            'LT' => '<',
+            'LTE' => '=<',
+            'NOT' => '!=',
+            'LIKE' => 'like',
         ];
+        $operatorLogical = $filters['operator'] ?? 'and';
 
-        foreach ($filters as $field=>$fieldFilters){
-            if(is_array($fieldFilters) || is_object($fieldFilters)){
-                foreach ($fieldFilters as $filter){
-//                dd($filter);
+//        $logicalOperator=['and','or'];
+//        if (isset($filters['first_name'])) {
+//            $fieldFilters = $filters['first_name'];
+//            if (is_array($fieldFilters) || is_object($fieldFilters)) {
+//                foreach ($fieldFilters as $filter) {
+//
+////                    return $filter;
+//                    if (isset($filter['value'] )) {
+//                        if ($operatorLogical == 'and') {
+//
+//                            $userQuery->where('first_name', $filter);
+//
+//                        } elseif ($operatorLogical == 'or') {
+//                            $userQuery->orwhere('first_name', $filter);
+//                        }
+//                    }
+//                    $value = $filter['value'] ;
+////                    dd($value);
+//                    $operator = $availableOperators[$filter['operator']] ?? '=';
+//                    $userQuery->where('first_name', $operator, $value);
+////                        ->where('first_name' ,$filter)
+////                        ->orWhere('first_name',$filter);
+//                }
+//            }
+//
+//        }
+
+        if (isset($filters['last_name'])) {
+            $fieldFilters = $filters['last_name'];
+//            if (is_array($fieldFilters) || is_object($fieldFilters)) {
+                foreach ($fieldFilters as $filter) {
                     $value = $filter['value'];
-                    $operator = $availableOperators[$filter['operator']]??'=';
-                    $userQuery->where($field,$operator,$value);
+                    $operator = $availableOperators[$filter['operator']?? 'EQ'];
+                    $userQuery->where('last_name', $operator, $value);
                 }
-            }
+//            }
+
         }
+
+        if (isset($filters['first_name'])) {
+            $fieldFilters = $filters['first_name'];
+//            $operatorLogical = $filters['operator'];
+//            if (is_array($fieldFilters) || is_object($fieldFilters)) {
+                foreach ($fieldFilters as $filter) {
+                    $value = $filter['value'];
+                    $operator = $availableOperators[$filter['operator']??'EQ'];
+                    $userQuery->where('first_name', $operator, $value);
+                }
+//            }
+//
+        }
+
 
         $perPage = $request->input('per_page', 15);
         $user = $userQuery->paginate($perPage);
         return $this->createResponse(true, 'Users found successfully', $user);
 
+
         //filter with column
 
-//        if (isset($filters['first_name'])){
-////            $fieldFilters = $filters['first_name'];
-////            foreach ($fieldFilters as $filter){
-////                $value = $filter['value'];
-////                $operator = $availableOperators[$filter['operator']]??'=';
-////                $userQuery->where('first_name',$operator,$value);
-////            }
-////        }
-
-        }
+    }
 
     public function show($id)
     {
@@ -157,8 +193,6 @@ class AdminCntroller extends Controller
         return $this->createResponse(false, $message);
     }
 }
-
-
 
 
 
