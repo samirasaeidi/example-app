@@ -169,44 +169,40 @@ class AdminCntroller extends Controller
         ];
 
         foreach ($filters as $field => $fieldFilters) {
-//            dd($field);
 
-            foreach ($preparedFilters as $pFilter) {
-//                dd($pFilter);
+            foreach ($preparedFilters as $preparedFilter) {
 
-                if ($pFilter['name'] === $field) {
-//                    dd($pFilter);
-//                    dd($field);
+                if ($preparedFilter['name'] === $field) {
+
                     foreach ($fieldFilters as $filter) {
-
-//                        dd($filter);
-
-//                        مقداری ورودی کاربر در $preparedFilters وجود داره یا نه اگه وجود
-
-
 
                         $value = $filter['value'] ?? null;
 
-//                        حالا برای چک کردن فیتر ها هست که اگر توی اگر توی آرایه هست یا نه
-// اگر که هست با توجه به کلید مقدارش را از آرایه بالایی ها در بیار
-
-                        $logicalOperator = $availableLogical[$filter['logical'] ?? 'AND'];
-                        $fieldType = $fieldTypes[$field] ?? 'string';
-
-                        if ($fieldType === 'string') {
-                            $operator = $availableOperatorString[$filter['operator'] ?? 'EQ'];
-                        } elseif ($fieldType === 'number') {
-                            $operator = $availableOperatorNumber[$filter['operator'] ?? 'EQ'];
+                        $logicalOperator = $filter['logical'] ?? 'AND';
+                        if (!in_array($logicalOperator, $preparedFilter['logics'])) {
+                            $logicalOperator= 'AND';
                         }
+                        $logicalOperator = $availableLogical[$logicalOperator];
+
+                        $operator = $filter['operator'] ?? 'EQ';
+                        if (!in_array($operator, $preparedFilter['operators'])) {
+                            $operator = 'EQ';
+                        }
+
+                        $fieldType = $fieldTypes[$field] ?? 'string';
+                        if ($fieldType === 'number') {
+                            $operator = $availableOperatorNumber[$operator];
+                        } else {
+                            $operator = $availableOperatorString[$operator];
+                        }
+
                         if ($operator === 'like') {
                             $value = "%$value%";
                         }
                         $userQuery->Where($field, $operator, $value, $logicalOperator);
                     }
                 }
-
             }
-
         }
 
         $perPage = $request->input('per_page', 15);
@@ -447,3 +443,7 @@ class AdminCntroller extends Controller
 //    $user = $userQuery->paginate($perPage);
 //    return $this->createResponse(true, 'Users found successfully', $user);
 //}
+
+
+
+
