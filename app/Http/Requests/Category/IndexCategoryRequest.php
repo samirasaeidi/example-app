@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Category;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ExpireRequest extends FormRequest
+class IndexCategoryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,10 +22,7 @@ class ExpireRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mobile' => [
-                'required',
-                'mobile'
-            ]
+            //
         ];
     }
 }

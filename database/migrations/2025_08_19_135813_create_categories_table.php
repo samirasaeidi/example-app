@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('paretns', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('parent_id')->nullable();
+            $table->string('name')->unique();
+            $table->boolean('active')->default(true);
+            $table->string('slug')->unique();
             $table->timestamps();
         });
     }
@@ -22,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('paretns');
+        Schema::dropIfExists('categories');
     }
 };

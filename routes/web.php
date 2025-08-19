@@ -1,9 +1,7 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Route;
-use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
@@ -14,15 +12,14 @@ Route::get('/s', function () {
 
 
     $array = [
-        'name' => 'Desk',
-        'price' => 100,
+        [
+            'user.product'=>'shoes' ,
+            'user.color'=>'red'
+        ]
     ];
+    $sorted =Arr::undot($array);
 
-    $keyed = Arr::prependKeysWith($array, 'product.');
-
-    dd($keyed);
-
-
+    dd($sorted);
 });
 
 

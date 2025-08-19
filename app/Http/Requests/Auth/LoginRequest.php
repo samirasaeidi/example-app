@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Validation\Rules;
-
 
 
 class LoginRequest extends FormRequest

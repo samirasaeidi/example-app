@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Auth;
 
 use App\Rules\MobileRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
-use function Laravel\Prompts\password;
 
 
 class RegisterRequest extends FormRequest

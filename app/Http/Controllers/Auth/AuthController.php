@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
-use App\Http\Requests\RegisterRequest;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\ExpireRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ExpireRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Otp;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 

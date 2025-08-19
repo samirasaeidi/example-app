@@ -36,7 +36,6 @@ class Otp extends Model
         return $this->newQuery()->firstOrCreate([
             'mobile' => $mobile,
         ], [
-            'mobile' => $mobile,
             'password' => $password,
             $this->code = $otp,
             $this->expires_at = now()->addSeconds(60),

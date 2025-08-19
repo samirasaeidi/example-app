@@ -2,18 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CreateUserRequest;
-use App\Http\Requests\IndexUserRequest;
-use App\Http\Requests\UpdateUserRequest;
-use App\Models\Otp;
+use App\Http\Requests\User\CreateUserRequest;
+use App\Http\Requests\User\IndexUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Pagination\CursorPaginator;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Arr;
-use function Symfony\Component\String\s;
 
 
 class AdminCntroller extends Controller
