@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
@@ -20,12 +19,12 @@ class CategorySeeder extends Seeder
 
         Category::factory()
             ->count(10)
-            ->withChildren(3,1)
+            ->withChildren(3, 1)
             ->create();
 
         Category::factory()
             ->count(5)
-            ->withChildren(1,0)
+            ->withChildren(1, 0)
             ->create();
 
         Category::factory()

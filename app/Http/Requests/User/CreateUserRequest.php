@@ -23,23 +23,23 @@ class CreateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name'=>[
+            'first_name' => [
                 'required',
                 'string',
-                'max:128'
+                'max:128',
             ],
-            'last_name'=>[
+            'last_name' => [
                 'required',
                 'string',
-                'max:128'
+                'max:128',
             ],
-            'mobile'=>[
+            'mobile' => [
                 'required',
                 'string',
                 'max:11',
-                'mobile'
+                'mobile',
             ],
-            'password'=>[
+            'password' => [
                 'required',
                 Rules\Password::min(6)
                     ->max(64)
@@ -47,12 +47,12 @@ class CreateUserRequest extends FormRequest
                     ->symbols()
                     ->numbers(),
             ],
-            'national_code'=>[
+            'national_code' => [
                 'required',
                 'string',
                 'max:10',
-                'national_code'
-            ]
+                'national_code',
+            ],
         ];
     }
 }

@@ -27,7 +27,7 @@ class User extends Authenticatable implements JWTSubject
         'is_ban',
         'national_code',
         'birth_date',
-        'father_name'
+        'father_name',
     ];
 
     /**
@@ -52,7 +52,7 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-    public function getJWTIdentifier():mixed
+    public function getJWTIdentifier(): mixed
     {
         return $this->getKey();
     }
@@ -71,7 +71,4 @@ class User extends Authenticatable implements JWTSubject
             ];
         $this->fill($user)->save();
     }
-
 }
-
-

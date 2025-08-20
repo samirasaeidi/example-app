@@ -15,6 +15,7 @@ class CategoryFactory extends Factory
      * Define the model's default state.
      *
      * @return array<string, mixed>
+     *
      * @throws RandomException
      */
     public function definition(): array
@@ -23,7 +24,7 @@ class CategoryFactory extends Factory
             'name' => fake()->unique()->name(),
             'parent_id' => null,
             'slug' => fake()->slug(),
-            'active' => random_int(0, 1)
+            'active' => random_int(0, 1),
         ];
 
     }
@@ -35,7 +36,7 @@ class CategoryFactory extends Factory
                 Category::factory()
                     ->count($children)
                     ->create([
-                        'parent_id' => $category->id
+                        'parent_id' => $category->id,
                     ])->each(function (Category $child) use ($levels, $children) {
                         $child->factory()->withChildren($levels - 1, $children);
                     });

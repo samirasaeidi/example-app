@@ -1,16 +1,15 @@
 <?php
 
-return[
+return [
 
-    'custom'=>[
+    'custom' => [
 
-        'mobile'=>[
-            'required'=>"شماره موبایل الزامی است",
+        'mobile' => [
+            'required' => 'شماره موبایل الزامی است',
         ],
-        'password'=>[
-            'required'=>"رمزعبور الزامی است"
-        ]
-    ]
-
+        'password' => [
+            'required' => 'رمزعبور الزامی است',
+        ],
+    ],
 
 ];

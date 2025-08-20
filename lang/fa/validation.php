@@ -177,9 +177,9 @@ return [
     */
 
     'custom' => [
-//        'attribute-name' => [
-//            'rule-name' => 'custom-message',
-//        ],
+        //        'attribute-name' => [
+        //            'rule-name' => 'custom-message',
+        //        ],
     ],
 
     /*
@@ -194,8 +194,8 @@ return [
     */
 
     'attributes' => [
-        'mobile'=>'موبایل',
-        'password'=>'رمز عبور'
+        'mobile' => 'موبایل',
+        'password' => 'رمز عبور',
     ],
 
 ];

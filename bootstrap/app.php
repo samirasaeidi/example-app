@@ -11,8 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware ): void {
-        $middleware->replace(\Illuminate\Foundation\Http\Middleware\TrimStrings::class,\App\Http\Middleware\TrimStrings::class);
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->replace(\Illuminate\Foundation\Http\Middleware\TrimStrings::class, \App\Http\Middleware\TrimStrings::class);
 
     })
     ->withExceptions(function (Exceptions $exceptions): void {

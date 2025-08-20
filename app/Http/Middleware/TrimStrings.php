@@ -15,7 +15,7 @@ class TrimStrings extends TrimStringsBase
             return $value;
         }
 
-        if (str_contains($key,'mobile')){
+        if (str_contains($key, 'mobile')) {
             $value = $this->mobileTransform($value);
         }
 
@@ -24,8 +24,8 @@ class TrimStrings extends TrimStringsBase
 
     protected function mobileTransform($value): string
     {
-        $pattern='/^(?:(\+98|0))(9(\d+))/';
-        preg_match($pattern,$value,$matches);
+        $pattern = '/^(?:(\+98|0))(9(\d+))/';
+        preg_match($pattern, $value, $matches);
 
         return $matches[2];
     }

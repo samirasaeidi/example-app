@@ -1,12 +1,10 @@
 <?php
 
-
 use App\Http\Controllers\Admin\AdminCntroller;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Category\CategoryController;
+use App\Http\Controllers\Profile\ProfileController;
 use Illuminate\Support\Facades\Route;
-
 
 Route::prefix('auth')->middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -27,5 +25,3 @@ Route::prefix('admin')->group(function () {
 Route::prefix('category')->group(function () {
     Route::apiResource('categories', CategoryController::class);
 });
-
-

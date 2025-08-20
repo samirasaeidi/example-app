@@ -10,13 +10,13 @@ class Otp extends Model
         'mobile',
         'code',
         'expires_at',
-        'last_sent_at'
+        'last_sent_at',
     ];
 
     protected function casts()
     {
         return [
-            'last_sent_at' => 'datetime'
+            'last_sent_at' => 'datetime',
         ];
     }
 
@@ -30,7 +30,7 @@ class Otp extends Model
         $this->save();
     }
 
-    public function updateOrCreateOtp(int $mobile, int $otp, string|null $password)
+    public function updateOrCreateOtp(int $mobile, int $otp, ?string $password)
     {
 
         return $this->newQuery()->firstOrCreate([
@@ -50,6 +50,4 @@ class Otp extends Model
         $this->sent_count = 0;
         $this->try = 0;
     }
-
 }
-

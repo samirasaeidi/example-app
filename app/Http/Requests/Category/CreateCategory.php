@@ -29,8 +29,8 @@ class CreateCategory extends FormRequest
             ],
             'slug' => [
                 'required',
-                'string'
-            ]
+                'string',
+            ],
         ];
     }
 }

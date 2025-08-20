@@ -5,7 +5,6 @@ namespace App\Http\Requests\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
 
-
 class LoginRequest extends FormRequest
 {
     /**
@@ -28,14 +27,16 @@ class LoginRequest extends FormRequest
                 'required',
                 'string',
                 'max:11',
-                'mobile'
+                'mobile',
             ],
         ];
     }
-    public function validateSentCount($otpModel){
+
+    public function validateSentCount($otpModel)
+    {
         if ($otpModel->sent_count >= 5) {
             throw ValidationException::withMessages([
-                'mobile'=>"Please waite for 10 Minutes!",
+                'mobile' => 'Please waite for 10 Minutes!',
             ]);
         }
     }
@@ -44,7 +45,7 @@ class LoginRequest extends FormRequest
     {
         if ($otpModel->last_sent_at->diffInSeconds(now()) <= 10) {
             throw ValidationException::withMessages([
-                'mobile'=>"Please Waite for 60 Second!",
+                'mobile' => 'Please Waite for 60 Second!',
             ]);
         }
     }

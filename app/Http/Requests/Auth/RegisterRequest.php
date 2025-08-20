@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Rules\MobileRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
-
 
 class RegisterRequest extends FormRequest
 {
@@ -17,7 +15,6 @@ class RegisterRequest extends FormRequest
     {
         return true;
     }
-
 
     /**
      * Get the validation rules that apply to the request.
@@ -33,17 +30,17 @@ class RegisterRequest extends FormRequest
                 'max:11',
                 'mobile',
             ],
-            'first_name'=>[
+            'first_name' => [
                 'required',
                 'string',
                 'max:128',
             ],
-            'last_name'=>[
+            'last_name' => [
                 'required',
                 'string',
                 'max:128',
             ],
-            'password'=>[
+            'password' => [
                 'required',
                 Rules\Password::min(6)
                     ->max(64)
@@ -51,20 +48,21 @@ class RegisterRequest extends FormRequest
                     ->symbols()
                     ->numbers(),
             ],
-            'national_code'=>[
+            'national_code' => [
                 'required',
                 'string',
                 'max:10',
-                'national_code'
-//                'regex:[^0][\d]{9,9}$',
-            ]
+                'national_code',
+                //                'regex:[^0][\d]{9,9}$',
+            ],
         ];
     }
 
-    public function validateSentCount($otpModel){
+    public function validateSentCount($otpModel)
+    {
         if ($otpModel->sent_count >= 5) {
             throw ValidationException::withMessages([
-                'mobile'=>"Please waite for 10 Minutes!",
+                'mobile' => 'Please waite for 10 Minutes!',
             ]);
         }
     }
@@ -73,7 +71,7 @@ class RegisterRequest extends FormRequest
     {
         if ($otpModel->last_sent_at->diffInSeconds(now()) <= 60) {
             throw ValidationException::withMessages([
-                'mobile'=>"Please Waite for 60 Second!",
+                'mobile' => 'Please Waite for 60 Second!',
             ]);
         }
     }

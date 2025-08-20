@@ -12,7 +12,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
-
 class AuthController extends Controller
 {
     /**
@@ -29,7 +28,7 @@ class AuthController extends Controller
             return $this->responseFailed('the mobile number exists');
         }
 
-        $otpCode = (new Otp())->updateOrCreateOtp($mobile, $otp, $password = null);
+        $otpCode = (new Otp)->updateOrCreateOtp($mobile, $otp, $password = null);
 
         if ($otpCode->wasRecentlyCreated) {
             return $this->responseSuccess(otp: $otp);
@@ -72,7 +71,7 @@ class AuthController extends Controller
             ],
         );
         $data->forceFill([
-            'mobile_verified_at' => now()
+            'mobile_verified_at' => now(),
         ])->save();
 
         $token = JWTAuth::fromUser($data);
@@ -86,7 +85,7 @@ class AuthController extends Controller
         $mobile = $request->input('mobile');
         $otpCode = Otp::query()->where('mobile', $mobile)->first();
 
-        if (!$otpCode) {
+        if (! $otpCode) {
             return $this->responseFailed('the mobile number is invalid');
         }
 
@@ -102,7 +101,7 @@ class AuthController extends Controller
     {
         $credentials = $request->only(['mobile', 'password']);
 
-        if (!$token = auth()->attempt($credentials)) {
+        if (! $token = auth()->attempt($credentials)) {
             return $this->responseFailed('Unauthorized');
         }
 
@@ -110,7 +109,7 @@ class AuthController extends Controller
         $password = $request->input('password');
         $otp = generate_otp_code();
 
-        $otpCode = (new Otp())->updateOrCreateOtp($mobile, $otp, $password);
+        $otpCode = (new Otp)->updateOrCreateOtp($mobile, $otp, $password);
 
         if ($otpCode->wasRecentlyCreated) {
             return $this->responseSuccess(otp: $otp);
@@ -136,7 +135,7 @@ class AuthController extends Controller
     }
 
     /**
-     * @var string $message
+     * @var string
      */
     private function responseSuccessCreate(string $message, $data = [], $otp = '')
     {
@@ -162,8 +161,4 @@ class AuthController extends Controller
 
         ]);
     }
-
-
 }
-
-

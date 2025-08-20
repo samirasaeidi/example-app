@@ -11,7 +11,7 @@ class UpdateCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,27 @@ class UpdateCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => [
+                'required',
+                'max:255',
+                'string',
+            ],
+            'slug' => [
+                'required',
+                'string',
+            ],
+            'parent_id' => [
+                'sometimes',
+                'nullable',
+                'int',
+                'exists:categories,id'
+            ],
+            'active'=>[
+                'sometime',
+                'nullable',
+                'int'
+            ]
+
         ];
     }
 }

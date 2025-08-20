@@ -24,8 +24,8 @@ class ExpireRequest extends FormRequest
         return [
             'mobile' => [
                 'required',
-                'mobile'
-            ]
+                'mobile',
+            ],
         ];
     }
 }

@@ -8,24 +8,23 @@ use App\Http\Requests\User\IndexUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
 
-
 class AdminCntroller extends Controller
 {
-
     protected const DEFAULT_SORT = 'id';
+
     protected const DEFAULT_DIRECTION = 'asc';
-
-    protected const DEFAULT_FILTER = 'id';
-
 
     public function index(IndexUserRequest $request)
     {
         $allowedCollections = ['mobile', 'national_code', 'id', 'first_name'];
 
         $userQuery = User::query();
+
         $orderInput = $request->input('sort', self::DEFAULT_SORT);
+
         if (is_string($orderInput)) {
             $userQuery->orderBy($orderInput, self::DEFAULT_DIRECTION);
+
         } elseif (is_array($orderInput)) {
             $orderColumn = $allowedCollections[0] ?? self::DEFAULT_SORT;
             $orderDirection = $orderInput[1] ?? self::DEFAULT_DIRECTION;
@@ -35,22 +34,21 @@ class AdminCntroller extends Controller
         }
 
         $searchQuery = $request->input('search');
-        if (!empty($searchQuery)) {
+        if (! empty($searchQuery)) {
             $userQuery->where(function ($q) use ($searchQuery) {
-                $q->where('first_name', 'LIKE', '%' . $searchQuery . '%')
-                    ->orWhere('last_name', 'LIKE', '%' . $searchQuery . '%')
-                    ->orWhere('mobile', 'LIKE', '%' . $searchQuery . '%')
-                    ->orWhere('national_code', 'LIKE', '%' . $searchQuery . '%');
+                $q->where('first_name', 'LIKE', '%'.$searchQuery.'%')
+                    ->orWhere('last_name', 'LIKE', '%'.$searchQuery.'%')
+                    ->orWhere('mobile', 'LIKE', '%'.$searchQuery.'%')
+                    ->orWhere('national_code', 'LIKE', '%'.$searchQuery.'%');
             });
         }
-
 
         $filters = $request->input('filters', []);
 
         $availableOperatorString = [
             'LIKE' => 'like',
             'NOT' => '!=',
-            'EQ' => '='
+            'EQ' => '=',
         ];
 
         $availableOperatorNumber = [
@@ -59,12 +57,12 @@ class AdminCntroller extends Controller
             'GTE' => '>=',
             'LT' => '<',
             'LTE' => '=<',
-            'NOT' => '!='
+            'NOT' => '!=',
         ];
 
         $availableLogical = [
             'AND' => 'and',
-            'OR' => 'or'
+            'OR' => 'or',
         ];
 
         $fieldTypes = [
@@ -73,55 +71,54 @@ class AdminCntroller extends Controller
             'last_name' => 'string',
             'mobile' => 'string',
             'father_name' => 'string',
-            'national_code' => 'string'
+            'national_code' => 'string',
         ];
-
 
         $preparedFilters = [
             [
                 'name' => 'first_name',
                 'logics' => [
                     'AND',
-                    'OR'
+                    'OR',
                 ],
                 'type' => 'string',
                 'operators' => [
                     'LIKE',
                     'NOT',
-                    'EQ'
-                ]
+                    'EQ',
+                ],
             ],
             [
                 'name' => 'last_name',
                 'logics' => [
                     'AND',
-                    'OR'
+                    'OR',
                 ],
                 'type' => 'string',
                 'operators' => [
                     'LIKE',
                     'NOT',
-                    'EQ'
+                    'EQ',
                 ],
             ],
             [
                 'name' => 'father_name',
                 'logics' => [
                     'AND',
-                    'OR'
+                    'OR',
                 ],
                 'type' => 'string',
                 'operators' => [
                     'LIKE',
                     'NOT',
-                    'EQ'
+                    'EQ',
                 ],
             ],
             [
                 'name' => 'age',
                 'logics' => [
                     'AND',
-                    'OR'
+                    'OR',
                 ],
                 'type' => 'number',
                 'operators' => [
@@ -130,35 +127,35 @@ class AdminCntroller extends Controller
                     'GT',
                     'GTE',
                     'LT',
-                    'LTE'
-                ]
+                    'LTE',
+                ],
             ],
             [
                 'name' => 'national_code',
                 'logics' => [
                     'AND',
-                    'OR'
+                    'OR',
                 ],
                 'type' => 'string',
                 'operators' => [
                     'LIKE',
                     'NOT',
-                    'EQ'
-                ]
+                    'EQ',
+                ],
             ],
             [
                 'name' => 'mobile',
                 'logics' => [
                     'AND',
-                    'OR'
+                    'OR',
                 ],
                 'type' => 'string',
                 'operators' => [
                     'LIKE',
                     'NOT',
-                    'EQ'
-                ]
-            ]
+                    'EQ',
+                ],
+            ],
         ];
 
         foreach ($filters as $field => $fieldFilters) {
@@ -172,13 +169,13 @@ class AdminCntroller extends Controller
                         $value = $filter['value'] ?? null;
 
                         $logicalOperator = $filter['logical'] ?? 'AND';
-                        if (!in_array($logicalOperator, $preparedFilter['logics'])) {
-                            $logicalOperator= 'AND';
+                        if (! in_array($logicalOperator, $preparedFilter['logics'])) {
+                            $logicalOperator = 'AND';
                         }
                         $logicalOperator = $availableLogical[$logicalOperator];
 
                         $operator = $filter['operator'] ?? 'EQ';
-                        if (!in_array($operator, $preparedFilter['operators'])) {
+                        if (! in_array($operator, $preparedFilter['operators'])) {
                             $operator = 'EQ';
                         }
 
@@ -200,16 +197,17 @@ class AdminCntroller extends Controller
 
         $perPage = $request->input('per_page', 15);
         $user = $userQuery->paginate($perPage);
+
         return $this->createResponse(true, 'Users found successfully', $user);
     }
-
 
     public function show($id)
     {
         $user = User::query()->findOrFail($id);
-        if (!$user) {
+        if (! $user) {
             return $this->responseFailed('User does not exist.');
         }
+
         return $this->createResponse(true, 'User found successfully.', $user);
 
     }
@@ -229,13 +227,14 @@ class AdminCntroller extends Controller
                 'father_name' => $request->input('father_name'),
             ]
         );
+
         return $this->createResponse(true, 'User created successfully.', $user);
     }
 
     public function update(UpdateUserRequest $request, $id)
     {
         $user = User::query()->find($id);
-        if (!$user) {
+        if (! $user) {
             return $this->responseFailed('User does not exist.');
         }
 
@@ -247,10 +246,11 @@ class AdminCntroller extends Controller
     public function destroy($id)
     {
         $user = User::query()->find($id);
-        if (!$user) {
+        if (! $user) {
             return $this->responseFailed('User does not exist.');
         }
         $user->delete();
+
         return $this->createResponse(true, 'User deleted successful.');
     }
 
@@ -259,7 +259,7 @@ class AdminCntroller extends Controller
         return response()->json([
             'status' => $status,
             'message' => $message,
-            'data' => $user
+            'data' => $user,
         ]);
     }
 
@@ -269,8 +269,8 @@ class AdminCntroller extends Controller
     }
 }
 
-//public function index(IndexUserRequest $request)
-//{
+// public function index(IndexUserRequest $request)
+// {
 //    $allowedCollections = ['mobile', 'national_code', 'id', 'first_name'];
 //
 //    $userQuery = User::query();
@@ -435,8 +435,4 @@ class AdminCntroller extends Controller
 //    $perPage = $request->input('per_page', 15);
 //    $user = $userQuery->paginate($perPage);
 //    return $this->createResponse(true, 'Users found successfully', $user);
-//}
-
-
-
-
+// }
