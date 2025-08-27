@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Category;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateCategory extends FormRequest
@@ -17,7 +18,7 @@ class CreateCategory extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
@@ -27,6 +28,12 @@ class CreateCategory extends FormRequest
                 'max:255',
                 'string',
                 'unique:categories,name',
+            ],
+            'slug' => [
+                'required',
+                'max:255',
+                'string',
+                'unique:categories,slug',
             ],
             'parent_id' => [
                 'sometimes',

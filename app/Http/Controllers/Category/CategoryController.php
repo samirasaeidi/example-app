@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Category;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Category\CreateCategory;
-use App\Http\Requests\Category\IndexCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -15,9 +15,8 @@ class CategoryController extends Controller
 
     protected const DEFAULT_DIRECTION = 'asc';
 
-    public function index(IndexCategoryRequest $request)
+    public function index(Request $request)
     {
-
         $allowedSortCollections = ['id', 'name', 'active', 'slug'];
         $categoryQuery = Category::query();
         $sortInput = $request->input('sort', self::DEFAULT_SORT);
@@ -174,52 +173,33 @@ class CategoryController extends Controller
 
     public function store(CreateCategory $request)
     {
-        $name = $request->input('name');
-
-        $category = Category::query()->where('name', $name)->first();
-        if ($category) {
-            return $this->responseFailed('Category was exist.');
-        }
         $category = Category::query()->create(
             $request->safe()->all()
         );
 
-        return $this->createResponse(true, 'Create Category Was Successfully', $category);
+        return $this->createResponse(true, 'Create Category Was Successfully', new CategoryResource($category));
     }
 
-    public function update(UpdateCategoryRequest $request, $id)
+    // TODO: convert $id to route model binding
+    // TODO: set id in unique name ignore this raw
+    public function update(UpdateCategoryRequest $request, Category $category)
     {
-        $category = Category::query()->find($id);
-
-        if (! $category) {
-            return $this->responseFailed('Category does not exist');
-        }
-
         $category->updateCategory($request);
 
-        return $this->createResponse(true, 'Category was Update Successfully.', $category);
+        return $this->createResponse(true, 'Category was Update Successfully.', new CategoryResource($category));
     }
 
-    public function destroy($id)
+    // TODO: convert $id to route model binding
+    public function destroy(Category $category)
     {
-        $category = Category::query()->find($id);
-
-        if (! $category) {
-            return $this->responseFailed('Category does not exist.');
-        }
         $category->delete();
 
         return $this->createResponse(true, 'Category deleted successfully');
     }
 
-    public function show($id)
+    // TODO: convert $id to route model binding
+    public function show(Category $category)
     {
-        $category = Category::query()->findOrFail($id);
-
-        if (! $category) {
-            return $this->responseFailed('Category does not exist.');
-        }
-
         return $this->createResponse(true, 'Categories found successfully', new CategoryResource($category));
     }
 
@@ -235,31 +215,6 @@ class CategoryController extends Controller
             'status' => $status,
             'message' => $message,
             'category' => $category,
-            //            'breadcrumb'=> $category->breadcrumb()
         ]);
     }
-
-//    public function subCategories($id)
-//    {
-//        $category = Category::query()->find($id);
-//
-//        if (! $category) {
-//            return $this->responseFailed('Category not found');
-//        }
-//        $name = $category->name;
-//        if (! $category->parent) {
-//            return $name;
-//        }
-//        $br = $this->recursiveCategory($category->parent, $name);
-//        dd($br);
-//    }
-
-//    public function recursiveCategory(Category $category, string $breadCrumb): string
-//    {
-//        $breadCrumb = $category->name.' / '.$breadCrumb;
-//        if ($category->parent == null) {
-//            return $breadCrumb;
-//        }
-//        return $this->recursiveCategory($category->parent, $breadCrumb);
-//    }
 }
