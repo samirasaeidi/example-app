@@ -29,7 +29,8 @@ class UpdateCategoryRequest extends FormRequest
                 'required',
                 'max:255',
                 'string',
-                Rule::unique('categories', 'name')->ignore($categoryId),
+                Rule::unique('categories', 'name')->ignore($this->category->id),
+//                'unique:categories,name,'.$categoryId
             ],
             'slug' => [
                 'required',
