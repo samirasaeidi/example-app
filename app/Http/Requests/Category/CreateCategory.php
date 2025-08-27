@@ -26,11 +26,28 @@ class CreateCategory extends FormRequest
                 'required',
                 'max:255',
                 'string',
+                'unique:categories,name',
             ],
-            'slug' => [
-                'required',
-                'string',
+            'parent_id' => [
+                'sometimes',
+                'nullable',
+                'int',
+                'exists:categories,id',
+            ],
+            'active' => [
+                'sometime',
+                'nullable',
+                'int',
             ],
         ];
+    }
+
+    public function prepareForValidation()
+    {
+        if ($this->name) {
+            $this->merge([
+                'slug' => createSlug($this->name),
+            ]);
+        }
     }
 }

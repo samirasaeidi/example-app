@@ -4,7 +4,6 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
-use Illuminate\Validation\ValidationException;
 
 class RegisterRequest extends FormRequest
 {
@@ -53,26 +52,7 @@ class RegisterRequest extends FormRequest
                 'string',
                 'max:10',
                 'national_code',
-                //                'regex:[^0][\d]{9,9}$',
             ],
         ];
-    }
-
-    public function validateSentCount($otpModel)
-    {
-        if ($otpModel->sent_count >= 5) {
-            throw ValidationException::withMessages([
-                'mobile' => 'Please waite for 10 Minutes!',
-            ]);
-        }
-    }
-
-    public function validateLastSentAt($otpModel)
-    {
-        if ($otpModel->last_sent_at->diffInSeconds(now()) <= 60) {
-            throw ValidationException::withMessages([
-                'mobile' => 'Please Waite for 60 Second!',
-            ]);
-        }
     }
 }

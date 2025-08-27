@@ -6,18 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ExpireRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\SendOtpRequest;
 use App\Models\Otp;
 use App\Models\User;
+use App\Traits\OtpValidations;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
+    use OtpValidations;
+
     /**
      * @throws ValidationException
      */
-    public function sendOtp(RegisterRequest $request)
+    public function sendOtp(SendOtpRequest $request)
     {
         $mobile = $request->input('mobile');
         $otp = generate_otp_code();
@@ -31,16 +35,16 @@ class AuthController extends Controller
         $otpCode = (new Otp)->updateOrCreateOtp($mobile, $otp, $password = null);
 
         if ($otpCode->wasRecentlyCreated) {
-            return $this->responseSuccess(otp: $otp);
+            return $this->responseSuccess();
         }
 
         if ($otpCode->last_sent_at->diffInMinutes(now()) >= 10) {
             $otpCode->resetCounters();
         }
 
-        $request->validateSentCount($otpCode);
+        $this->validateSentCount($otpCode);
 
-        $request->validateLastSentAt($otpCode);
+        $this->validateLastSentAt($otpCode);
 
         $otpCode->storeNewOtpCode($otp);
 
@@ -119,9 +123,9 @@ class AuthController extends Controller
             $otpCode->resetCounters();
         }
 
-        $request->validateSentCount($otpCode);
+        $this->validateSentCount($otpCode);
 
-        $request->validateLastSentAt($otpCode);
+        $this->validateLastSentAt($otpCode);
 
         $otpCode->storeNewOtpCode($otp);
 

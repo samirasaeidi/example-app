@@ -18,10 +18,9 @@ Route::prefix('profile')->middleware('auth')->group(function () {
 });
 
 Route::prefix('admin')->group(function () {
-    Route::get('users/test', [AdminCntroller::class, 'indexTest']);
     Route::apiResource('users', AdminCntroller::class);
 });
 
-Route::prefix('category')->group(function () {
-    Route::apiResource('categories', CategoryController::class);
-});
+Route::apiResource('categories', CategoryController::class);
+
+Route::get('subCategories/{id}', [CategoryController::class, 'subCategories']);

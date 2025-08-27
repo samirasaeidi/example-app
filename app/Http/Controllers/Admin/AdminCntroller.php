@@ -209,7 +209,6 @@ class AdminCntroller extends Controller
         }
 
         return $this->createResponse(true, 'User found successfully.', $user);
-
     }
 
     public function store(CreateUserRequest $request)
@@ -237,7 +236,6 @@ class AdminCntroller extends Controller
         if (! $user) {
             return $this->responseFailed('User does not exist.');
         }
-
         $user->updateUser($request);
 
         return $this->createResponse(true, 'User information edited successfully.', $user);

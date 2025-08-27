@@ -35,14 +35,24 @@ class UpdateCategoryRequest extends FormRequest
                 'sometimes',
                 'nullable',
                 'int',
-                'exists:categories,id'
+                'exists:categories,id',
             ],
-            'active'=>[
+            'active' => [
                 'sometime',
                 'nullable',
-                'int'
-            ]
+                'int',
+            ],
 
         ];
+    }
+
+    public function prepareForValidation()
+    {
+        if ($this->name) {
+            $this->merge([
+                'slug' => createSlug($this->name),
+            ]);
+        }
+
     }
 }

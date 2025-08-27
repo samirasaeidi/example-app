@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Category\CreateCategory;
 use App\Http\Requests\Category\IndexCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
-use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
@@ -18,7 +18,7 @@ class CategoryController extends Controller
     public function index(IndexCategoryRequest $request)
     {
 
-        $allowedSortCollections = ['name', 'active', 'slug'];
+        $allowedSortCollections = ['id', 'name', 'active', 'slug'];
         $categoryQuery = Category::query();
         $sortInput = $request->input('sort', self::DEFAULT_SORT);
 
@@ -136,6 +136,30 @@ class CategoryController extends Controller
 
                     foreach ($fieldFilters as $filter) {
 
+                        $value = $filter['value'] ?? null;
+
+                        $logicalOperator = $filter['logical'] ?? 'AND';
+                        if (! in_array($logicalOperator, $preparedFilter['logics'])) {
+                            $logicalOperator = 'AND';
+                        }
+                        $logicalOperator = $availableLogical[$logicalOperator];
+
+                        $operator = $filter['operator'] ?? 'EQ';
+                        if (! in_array($operator, $preparedFilter['operators'])) {
+                            $operator = 'EQ';
+                        }
+
+                        $fieldType = $fieldTypes[$field] ?? 'string';
+                        if ($fieldType === 'number') {
+                            $operator = $availableOperatorNumber[$operator];
+                        } else {
+                            $operator = $availableOperatorString[$operator];
+                        }
+
+                        if ($operator === 'like') {
+                            $value = "%$value%";
+                        }
+                        $categoryQuery->Where($field, $operator, $value, $logicalOperator);
                     }
                 }
             }
@@ -144,28 +168,20 @@ class CategoryController extends Controller
         $prePage = $request->input('pre_page', 12);
         $category = $categoryQuery->paginate($prePage);
 
-        return $this->createResponse(true, 'Categories found successfully', $category);
+        return $this->createResponse(true, 'Categories found successfully', $category->toResourceCollection());
 
     }
 
     public function store(CreateCategory $request)
     {
         $name = $request->input('name');
-        $slug = Str::slug($request->name, '-');
 
         $category = Category::query()->where('name', $name)->first();
-
         if ($category) {
             return $this->responseFailed('Category was exist.');
         }
-
         $category = Category::query()->create(
-            $request->safe()->all() +
-            [
-                'parent_id' => $request->input('parent_id'),
-                'active' => $request->input('active'),
-                'slug' => createSlug($name),
-            ]
+            $request->safe()->all()
         );
 
         return $this->createResponse(true, 'Create Category Was Successfully', $category);
@@ -204,7 +220,7 @@ class CategoryController extends Controller
             return $this->responseFailed('Category does not exist.');
         }
 
-        return $this->createResponse(true, 'Category found successfully.', $category);
+        return $this->createResponse(true, 'Categories found successfully', new CategoryResource($category));
     }
 
     private function responseFailed($message)
@@ -219,7 +235,31 @@ class CategoryController extends Controller
             'status' => $status,
             'message' => $message,
             'category' => $category,
+            //            'breadcrumb'=> $category->breadcrumb()
         ]);
-
     }
+
+//    public function subCategories($id)
+//    {
+//        $category = Category::query()->find($id);
+//
+//        if (! $category) {
+//            return $this->responseFailed('Category not found');
+//        }
+//        $name = $category->name;
+//        if (! $category->parent) {
+//            return $name;
+//        }
+//        $br = $this->recursiveCategory($category->parent, $name);
+//        dd($br);
+//    }
+
+//    public function recursiveCategory(Category $category, string $breadCrumb): string
+//    {
+//        $breadCrumb = $category->name.' / '.$breadCrumb;
+//        if ($category->parent == null) {
+//            return $breadCrumb;
+//        }
+//        return $this->recursiveCategory($category->parent, $breadCrumb);
+//    }
 }

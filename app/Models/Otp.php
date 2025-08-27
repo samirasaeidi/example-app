@@ -20,9 +20,9 @@ class Otp extends Model
         ];
     }
 
-    public function storeNewOtpCode($otpCode)
+    public function storeNewOtpCode($otp)
     {
-        $this->code = $otpCode;
+        $this->code = $otp;
         $this->expires_at = now()->addSeconds(10);
         $this->last_sent_at = now();
         $this->sent_count += 1;
@@ -37,11 +37,11 @@ class Otp extends Model
             'mobile' => $mobile,
         ], [
             'password' => $password,
-            $this->code = $otp,
-            $this->expires_at = now()->addSeconds(60),
-            $this->last_sent_at = now(),
-            $this->sent_count = 1,
-            $this->try = 0,
+            'code' => $otp,
+            'expires_at' => now()->addSeconds(60),
+            'last_sent_at' => now(),
+            'sent_count' => 1,
+            'try' => 0,
         ]);
     }
 
