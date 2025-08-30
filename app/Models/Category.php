@@ -34,7 +34,6 @@ class Category extends Model
         if ($category->parent == null) {
             return $breadCrumb;
         }
-
         return $this->recursiveCategory($category->parent, $breadCrumb);
     }
 }

@@ -24,3 +24,5 @@ Route::prefix('admin')->group(function () {
 Route::apiResource('categories', CategoryController::class);
 
 Route::get('subCategories/{id}', [CategoryController::class, 'subCategories']);
+
+Route::get('children',[CategoryController::class ,'children']);

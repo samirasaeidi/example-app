@@ -33,8 +33,8 @@ class CategoryController extends Controller
         }
 
         $searchQuery = $request->input('search');
-        if (! empty($searchQuery)) {
-            $categoryQuery->where('name', 'LIKE', '%'.$searchQuery.'%');
+        if (!empty($searchQuery)) {
+            $categoryQuery->where('name', 'LIKE', '%' . $searchQuery . '%');
         }
 
         $filters = $request->input('filters', []);
@@ -138,13 +138,13 @@ class CategoryController extends Controller
                         $value = $filter['value'] ?? null;
 
                         $logicalOperator = $filter['logical'] ?? 'AND';
-                        if (! in_array($logicalOperator, $preparedFilter['logics'])) {
+                        if (!in_array($logicalOperator, $preparedFilter['logics'])) {
                             $logicalOperator = 'AND';
                         }
                         $logicalOperator = $availableLogical[$logicalOperator];
 
                         $operator = $filter['operator'] ?? 'EQ';
-                        if (! in_array($operator, $preparedFilter['operators'])) {
+                        if (!in_array($operator, $preparedFilter['operators'])) {
                             $operator = 'EQ';
                         }
 
@@ -217,4 +217,57 @@ class CategoryController extends Controller
             'category' => $category,
         ]);
     }
+
+    public function children()
+    {
+        $categories = Category::select('id', 'name', 'parent_id')->get();
+        $branch = [];
+        foreach ($categories as $category) {
+            if (!$category->parent_id || $category->id == $category->parent_id) {
+                $tree = $this->categoryShow($categories, $category, []);
+                if ($tree) {
+                    $branch[] = $tree;
+                }
+            }
+        }
+        return $branch;
+    }
+
+    protected function categoryShow($categories, $parentId, $parent)
+    {
+        if ($parentId->id == $parentId->parent_id) {
+            return [
+                'id' => $parentId->id,
+                'name' => $parentId->name,
+                'children'=>[]
+            ];
+        }
+        if (in_array($parentId->id, $parent)) {
+            return null;
+        }
+
+        $parent[] = $parentId->id;
+        $children = [];
+        foreach ($categories as $category) {
+            if ($category->parent_id == $parentId->id) {
+                $childBranch = $this->categoryShow($categories, $category, $parent);
+                if ($childBranch) {
+                    $children[] = $childBranch;
+                }
+            }
+        }
+
+//        if($parentId->id == $children->id){
+//            return null;
+//        }
+
+        return [
+            'id' => $parentId->id,
+            'name' => $parentId->name,
+            'children' => $children
+        ];
+    }
 }
+
+
+
