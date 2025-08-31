@@ -8,6 +8,9 @@ use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use League\Fractal\Manager;
+use League\Fractal\Resource\Item;
+use App\Transformers\CategoryTransformer;
 
 class CategoryController extends Controller
 {
@@ -167,7 +170,8 @@ class CategoryController extends Controller
         $prePage = $request->input('pre_page', 12);
         $category = $categoryQuery->paginate($prePage);
 
-        return $this->createResponse(true, 'Categories found successfully', $category->toResourceCollection());
+        return $this->createResponse(
+            true, 'Categories found successfully', $category->toResourceCollection());
 
     }
 
@@ -184,23 +188,40 @@ class CategoryController extends Controller
     // TODO: set id in unique name ignore this raw
     public function update(UpdateCategoryRequest $request, Category $category)
     {
-        $category->updateCategory($request);
+        $fractal = new Manager();
+        $resource = new Item($category, new CategoryTransformer());
 
-        return $this->createResponse(true, 'Category was Update Successfully.', new CategoryResource($category));
+        $category->updateCategory($request);
+        return $this->createResponse(
+            true,
+            'Category was Update Successfully.',
+            $fractal->createData($resource)->toArray()
+        );
     }
 
     // TODO: convert $id to route model binding
     public function destroy(Category $category)
     {
         $category->delete();
-
         return $this->createResponse(true, 'Category deleted successfully');
     }
 
     // TODO: convert $id to route model binding
+//    public function show(Category $category)
+//    {
+//        return $this->createResponse(true, 'Categories found successfully', new CategoryResource($category));
+//    }
+
     public function show(Category $category)
     {
-        return $this->createResponse(true, 'Categories found successfully', new CategoryResource($category));
+        $fractal = new Manager();
+        $resource = new Item($category, new CategoryTransformer());
+
+        return $this->createResponse(
+            true,
+            'Category found successfully',
+            $fractal->createData($resource)->toArray()
+        );
     }
 
     private function responseFailed($message)
@@ -239,7 +260,7 @@ class CategoryController extends Controller
             return [
                 'id' => $parentId->id,
                 'name' => $parentId->name,
-                'children'=>[]
+                'children' => []
             ];
         }
         if (in_array($parentId->id, $parent)) {
@@ -250,17 +271,15 @@ class CategoryController extends Controller
         $children = [];
         foreach ($categories as $category) {
             if ($category->parent_id == $parentId->id) {
+                if ($category->id == $category->parent_id) {
+                    break;
+                }
                 $childBranch = $this->categoryShow($categories, $category, $parent);
                 if ($childBranch) {
                     $children[] = $childBranch;
                 }
             }
         }
-
-//        if($parentId->id == $children->id){
-//            return null;
-//        }
-
         return [
             'id' => $parentId->id,
             'name' => $parentId->name,
@@ -268,6 +287,5 @@ class CategoryController extends Controller
         ];
     }
 }
-
 
 
