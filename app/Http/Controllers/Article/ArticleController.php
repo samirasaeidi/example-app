@@ -1,45 +1,66 @@
 <?php
 
-namespace App\Http\Controllers\Category;
+namespace App\Http\Controllers\Article;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Category\CreateCategory;
-use App\Http\Requests\Category\UpdateCategoryRequest;
-use App\Http\Resources\CategoryResource;
-use App\Models\Category;
-use Illuminate\Http\Request;
-use League\Fractal\Manager;
-use League\Fractal\Resource\Item;
-use League\Fractal\Resource\Collection;
+use App\Http\Requests\Article\CreateArticleRequest;
+use App\Http\Requests\Article\UpdateArticleRequest;
+use App\Http\Resources\ArticleResource;
+use App\Jobs\VisitedArticle;
+use App\Models\Article;
 use App\Transformers\CategoryTransformer;
+use League\Fractal\Manager;
+use App\Transformers\ArticleTransformer;
+use Illuminate\Http\Request;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
+use League\Fractal\Resource\Collection;
+use League\Fractal\Resource\Item;
+use function Laravel\Prompts\search;
 
-class CategoryController extends Controller
+class ArticleController extends Controller
 {
-    protected const DEFAULT_SORT = 'id';
+    const DEFAULT_SORT = 'id';
 
-    protected const DEFAULT_DIRECTION = 'asc';
+    const DEFAULT_DIRECTION = 'asc';
+
+
+    public function seeArticle($id)
+    {
+        $article = Article::query()->find($id);
+        $user = auth()->user();
+
+        VisitedArticle::dispatch($article, $user);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'successfully',
+            'article' => $article
+        ]);
+    }
+
 
     public function index(Request $request)
     {
-        $allowedSortCollections = ['id', 'name', 'active', 'slug'];
-        $categoryQuery = Category::query();
+
+        $allowedSortCollections = ['id', 'title', 'excerpt', 'status'];
+        $articleQuery = Article::query();
         $sortInput = $request->input('sort', self::DEFAULT_SORT);
 
         if (is_string($sortInput)) {
-            $categoryQuery->orderBy($sortInput, self::DEFAULT_DIRECTION);
+            $articleQuery->orderBy($sortInput, self::DEFAULT_DIRECTION);
         }
+
         if (is_array($sortInput)) {
-            $sortCategory = $allowedSortCollections[0] ?? self::DEFAULT_SORT;
+            $sortArticle = $allowedSortCollections[0] ?? self::DEFAULT_SORT;
             $sortDirection = $sortInput[1] ?? self::DEFAULT_DIRECTION;
             $sortDirection = in_array($sortDirection, ['asc', 'desc']) ?
                 $sortDirection : self::DEFAULT_DIRECTION;
-            $categoryQuery->orderBy($sortCategory, $sortDirection);
+            $articleQuery->orderBy($sortArticle, $sortDirection);
         }
 
         $searchQuery = $request->input('search');
         if (!empty($searchQuery)) {
-            $categoryQuery->where('name', 'LIKE', '%' . $searchQuery . '%');
+            $articleQuery->where('title', 'LIKE', '%' . $searchQuery . '%');
         }
 
         $filters = $request->input('filters', []);
@@ -65,15 +86,15 @@ class CategoryController extends Controller
         ];
 
         $fieldTypes = [
-            'name' => 'string',
-            'slug' => 'string',
-            'parent_id' => 'number',
-            'active' => 'number',
+            'title' => 'string',
+            'content' => 'string',
+            'excerpt' => 'string',
+            'status' => 'number',
         ];
 
         $preparedFilters = [
             [
-                'name' => 'name',
+                'name' => 'title',
                 'logics' => [
                     'AND',
                     'OR',
@@ -86,7 +107,7 @@ class CategoryController extends Controller
                 ],
             ],
             [
-                'name' => 'slug',
+                'name' => 'content',
                 'logics' => [
                     'AND',
                     'OR',
@@ -99,23 +120,20 @@ class CategoryController extends Controller
                 ],
             ],
             [
-                'name' => 'parent_id',
+                'name' => 'excerpt',
                 'logics' => [
                     'AND',
                     'OR',
                 ],
-                'type' => 'number',
+                'type' => 'string',
                 'operators' => [
-                    'EQ',
+                    'LIKE',
                     'NOT',
-                    'GT',
-                    'GTE',
-                    'LT',
-                    'LTE',
+                    'EQ',
                 ],
             ],
             [
-                'name' => 'active',
+                'name' => 'status',
                 'logics' => [
                     'AND',
                     'OR',
@@ -163,135 +181,84 @@ class CategoryController extends Controller
                         if ($operator === 'like') {
                             $value = "%$value%";
                         }
-                        $categoryQuery->Where($field, $operator, $value, $logicalOperator);
+                        $articleQuery->Where($field, $operator, $value, $logicalOperator);
                     }
                 }
             }
         }
 
         $perPage = $request->input('per_page', 12);
-        $paginator = $categoryQuery->paginate($perPage);
-//        $category = $categoryQuery->get();
+        $paginator = $articleQuery->paginate($perPage);
         $fractal = new Manager();
-        $resource = new Collection($paginator->items(), new CategoryTransformer());
+        $resource = new Collection($paginator->items(), new ArticleTransformer());
         $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
-        $category = $fractal->createData($resource)->toArray();
+        $article = $fractal->createData($resource)->toArray();
 
         return $this->createResponse(
             true,
-            'Categories found successfully',
-             $category
+            'Articles found successfully',
+            $article
+
         );
     }
 
-    public function store(CreateCategory $request)
+    public function store(CreateArticleRequest $request)
     {
-        $category = Category::query()->create(
+        $article = Article::query()->create(
             $request->safe()->all()
         );
-        return $this->createResponse(true, 'Create Category Was Successfully', new CategoryResource($category));
+        return $this->createResponse(true, 'Article Create Successfully', new ArticleResource($article));
     }
 
-    // TODO: convert $id to route model binding
-    // TODO: set id in unique name ignore this raw
-    public function update(UpdateCategoryRequest $request, Category $category)
+    public function update(UpdateArticleRequest $request, Article $article)
     {
         $fractal = new Manager();
-        $resource = new Item($category, new CategoryTransformer());
-
-        $category->updateCategory($request);
+        $resource = new Item($article, new ArticleTransformer());
+        $article->update(
+            $request->safe()->all()
+        );
         return $this->createResponse(
             true,
-            'Category was Update Successfully.',
+            'Article Updated Successfully',
             $fractal->createData($resource)->toArray()
         );
     }
 
-    // TODO: convert $id to route model binding
-    public function destroy(Category $category)
+    public function show(Article $article)
     {
-        $category->delete();
-        return $this->createResponse(true, 'Category deleted successfully');
-    }
+//        $article = Article::query()->find($article);
+        $user = auth()->user();
+        VisitedArticle::dispatch($article, $user);
 
-    // TODO: convert $id to route model binding
-//    public function show(Category $category)
-//    {
-//        return $this->createResponse(true, 'Categories found successfully', new CategoryResource($category));
-//    }
-
-    public function show(Category $category)
-    {
         $fractal = new Manager();
-        $resource = new Item($category, new CategoryTransformer());
+        $resource = new Item($article, new ArticleTransformer());
         return $this->createResponse(
             true,
-            'Category found successfully',
+            'Article Found Successfully',
             $fractal->createData($resource)->toArray()
         );
     }
 
-    private function responseFailed($message)
+    public function destroy(Article $article)
     {
-        return $this->createResponse(false, $message);
+        $article->delete();
+        return $this->createResponse(true, 'Article Deleted Successfully');
     }
 
-    private function createResponse(bool $status, string $message, $category = [])
+    protected function createResponse(bool $status, string $message, $article = [])
     {
         return response()->json([
             'status' => $status,
             'message' => $message,
-            'category' => $category,
+            'article' => $article
         ]);
     }
-
-    public function children()
+    protected function responseFailed($message)
     {
-        $categories = Category::select('id', 'name', 'parent_id')->get();
-        $branch = [];
-        foreach ($categories as $category) {
-            if (!$category->parent_id || $category->id == $category->parent_id) {
-                $tree = $this->categoryShow($categories, $category, []);
-                if ($tree) {
-                    $branch[] = $tree;
-                }
-            }
-        }
-        return $branch;
-    }
-
-    protected function categoryShow($categories, $parentId, $parent)
-    {
-        if ($parentId->id == $parentId->parent_id) {
-            return [
-                'id' => $parentId->id,
-                'name' => $parentId->name,
-                'children' => []
-            ];
-        }
-        if (in_array($parentId->id, $parent)) {
-            return null;
-        }
-
-        $parent[] = $parentId->id;
-        $children = [];
-        foreach ($categories as $category) {
-            if ($category->parent_id == $parentId->id) {
-                if ($category->id == $category->parent_id) {
-                    break;
-                }
-                $childBranch = $this->categoryShow($categories, $category, $parent);
-                if ($childBranch) {
-                    $children[] = $childBranch;
-                }
-            }
-        }
-        return [
-            'id' => $parentId->id,
-            'name' => $parentId->name,
-            'children' => $children
-        ];
+        return $this->createResponse(false, $message);
     }
 }
+
+
 
 

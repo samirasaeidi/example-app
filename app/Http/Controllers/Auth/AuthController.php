@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Events\UserRegistered;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ExpireRequest;
 use App\Http\Requests\Auth\LoginRequest;
@@ -77,6 +78,8 @@ class AuthController extends Controller
         $data->forceFill([
             'mobile_verified_at' => now(),
         ])->save();
+
+        UserRegistered::dispatch();
 
         $token = JWTAuth::fromUser($data);
 

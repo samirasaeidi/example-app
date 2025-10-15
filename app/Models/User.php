@@ -3,8 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Events\UserRegistered;
 use App\Http\Requests\User\UpdateUserRequest;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -28,6 +30,7 @@ class User extends Authenticatable implements JWTSubject
         'national_code',
         'birth_date',
         'father_name',
+        'age',
     ];
 
     /**
@@ -52,6 +55,14 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
+    protected static function boot(){
+        parent::boot();
+
+        static::created(function (User $user) {
+            UserRegistered::dispatch();
+        });
+    }
+
     public function getJWTIdentifier(): mixed
     {
         return $this->getKey();
@@ -70,5 +81,10 @@ class User extends Authenticatable implements JWTSubject
                 'father_name' => $request->input('father_name'),
             ];
         $this->fill($user)->save();
+    }
+
+    public function articles(): BelongsToMany
+    {
+        return $this->belongsToMany(Article::class, 'article_users', 'user_id', 'article_id')->using(ArticleUser::class);
     }
 }

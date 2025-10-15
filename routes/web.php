@@ -9,13 +9,10 @@ Route::get('/', function () {
 
 Route::get('/s', function () {
 
-    $array = [
-        [
-            'user.product' => 'shoes',
-            'user.color' => 'red',
-        ],
-    ];
-    $sorted = Arr::undot($array);
+    $collection = collect([1, 2, 3, 4, 5]);
 
-    dd($sorted);
+    $chunks = $collection->sliding(4);
+
+//    $chunks->toArray();
+    dd($chunks->toArray());
 });

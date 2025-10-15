@@ -6,7 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\CreateUserRequest;
 use App\Http\Requests\User\IndexUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Transformers\UserTransformer;
+use League\Fractal\Manager;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
+use League\Fractal\Resource\Collection;
+use League\Fractal\Resource\Item;
 
 class AdminCntroller extends Controller
 {
@@ -34,12 +40,12 @@ class AdminCntroller extends Controller
         }
 
         $searchQuery = $request->input('search');
-        if (! empty($searchQuery)) {
+        if (!empty($searchQuery)) {
             $userQuery->where(function ($q) use ($searchQuery) {
-                $q->where('first_name', 'LIKE', '%'.$searchQuery.'%')
-                    ->orWhere('last_name', 'LIKE', '%'.$searchQuery.'%')
-                    ->orWhere('mobile', 'LIKE', '%'.$searchQuery.'%')
-                    ->orWhere('national_code', 'LIKE', '%'.$searchQuery.'%');
+                $q->where('first_name', 'LIKE', '%' . $searchQuery . '%')
+                    ->orWhere('last_name', 'LIKE', '%' . $searchQuery . '%')
+                    ->orWhere('mobile', 'LIKE', '%' . $searchQuery . '%')
+                    ->orWhere('national_code', 'LIKE', '%' . $searchQuery . '%');
             });
         }
 
@@ -169,13 +175,13 @@ class AdminCntroller extends Controller
                         $value = $filter['value'] ?? null;
 
                         $logicalOperator = $filter['logical'] ?? 'AND';
-                        if (! in_array($logicalOperator, $preparedFilter['logics'])) {
+                        if (!in_array($logicalOperator, $preparedFilter['logics'])) {
                             $logicalOperator = 'AND';
                         }
                         $logicalOperator = $availableLogical[$logicalOperator];
 
                         $operator = $filter['operator'] ?? 'EQ';
-                        if (! in_array($operator, $preparedFilter['operators'])) {
+                        if (!in_array($operator, $preparedFilter['operators'])) {
                             $operator = 'EQ';
                         }
 
@@ -196,19 +202,24 @@ class AdminCntroller extends Controller
         }
 
         $perPage = $request->input('per_page', 15);
-        $user = $userQuery->paginate($perPage);
+        $paginator = $userQuery->paginate($perPage);
+        $fractal = new Manager();
+        $resource = new Collection($paginator->items(), new UserTransformer());
+
+        $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
+        $user = $fractal->createData($resource)->toArray();
 
         return $this->createResponse(true, 'Users found successfully', $user);
     }
 
-    public function show($id)
+    public function show(User $user)
     {
-        $user = User::query()->findOrFail($id);
-        if (! $user) {
-            return $this->responseFailed('User does not exist.');
-        }
-
-        return $this->createResponse(true, 'User found successfully.', $user);
+        $fractal = new Manager();
+        $resource = new Item($user, new UserTransformer());
+        return $this->createResponse(
+            true,
+            'User found successfully.',
+            $fractal->createData($resource)->toArray());
     }
 
     public function store(CreateUserRequest $request)
@@ -227,28 +238,25 @@ class AdminCntroller extends Controller
             ]
         );
 
-        return $this->createResponse(true, 'User created successfully.', $user);
+        return $this->createResponse(true, 'User created successfully.', new UserResource($user));
     }
 
-    public function update(UpdateUserRequest $request, $id)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $user = User::query()->find($id);
-        if (! $user) {
-            return $this->responseFailed('User does not exist.');
-        }
+        $fractal = new Manager();
+        $resource = new Item($user, new UserTransformer());
+
         $user->updateUser($request);
 
-        return $this->createResponse(true, 'User information edited successfully.', $user);
+        return $this->createResponse(
+            true,
+            'User information edited successfully.',
+            $fractal->createData($resource)->toArray());
     }
 
-    public function destroy($id)
+    public function destroy(User $user)
     {
-        $user = User::query()->find($id);
-        if (! $user) {
-            return $this->responseFailed('User does not exist.');
-        }
         $user->delete();
-
         return $this->createResponse(true, 'User deleted successful.');
     }
 
